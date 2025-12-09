@@ -1,0 +1,530 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>喜欢的歌，想给你听</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Microsoft YaHei', 'Segoe UI', sans-serif;
+        }
+        
+        body {
+            background-color: #121212;
+            color: #f0f0f0;
+            line-height: 1.5;
+            background-image: 
+                radial-gradient(circle at 20% 30%, rgba(44, 68, 193, 0.08) 0%, transparent 25%),
+                radial-gradient(circle at 85% 75%, rgba(210, 95, 207, 0.06) 0%, transparent 22%);
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 500px;
+            margin: 0 auto;
+            padding: 20px 15px;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 25px 0 15px;
+        }
+        
+        h1 {
+            color: #FF4081;
+            font-size: 32px;
+            margin-bottom: 8px;
+            letter-spacing: 1px;
+            position: relative;
+            display: inline-block;
+        }
+        
+        h1:after {
+            content: '';
+            position: absolute;
+            bottom: -8px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 140px;
+            height: 3px;
+            background: linear-gradient(90deg, transparent, #FF4081, transparent);
+        }
+        
+        .player-container {
+            margin-bottom: 45px;
+        }
+        
+        .player-wrapper {
+            width: 100%;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.65);
+            background-color: #000;
+            margin-bottom: 20px;
+        }
+        
+        #main-player {
+            width: 100%;
+            height: 280px;
+            border: none;
+            display: block;
+        }
+        
+        .song-info {
+            padding: 16px;
+            background-color: rgba(255, 64, 129, 0.07);
+            border-radius: 12px;
+            margin-top: 10px;
+        }
+        
+        .song-title {
+            font-size: 20px;
+            color: #FF4081;
+            margin-bottom: 6px;
+        }
+        
+        .song-category {
+            font-size: 14px;
+            color: #BB86FC;
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            background-color: rgba(187, 134, 252, 0.12);
+            font-weight: 500;
+        }
+        
+        .categories-section {
+            margin-bottom: 30px;
+        }
+        
+        .categories-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+            margin-bottom: 25px;
+        }
+        
+        .category-tab {
+            padding: 18px 10px;
+            border-radius: 10px;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            background-color: rgba(255, 255, 255, 0.05);
+            color: #ddd;
+            text-align: center;
+            border: 2px solid transparent;
+            min-height: 72px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .category-tab:active {
+            transform: scale(0.97);
+        }
+        
+        .category-tab.active {
+            color: white;
+            border-color: #BB86FC;
+            box-shadow: 0 6px 15px rgba(107, 73, 217, 0.23);
+        }
+        
+        .category-guichu.active {
+            background-color: #E91E63;
+        }
+        
+        .category-pure.active {
+            background-color: #2196F3;
+        }
+        
+        .category-vfamily.active {
+            background-color: #009688;
+        }
+        
+        .category-energetic.active {
+            background-color: #FF9800;
+        }
+        
+        .category-other {
+            grid-column: span 2;
+        }
+        
+        .category-other.active {
+            background-color: #673AB7;
+        }
+        
+        .songs-container {
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+        
+        .song-card {
+            background-color: rgba(48, 46, 56, 0.55);
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border: 2px solid transparent;
+            display: flex;
+            overflow: hidden;
+        }
+        
+        .song-card:active {
+            transform: scale(0.98);
+        }
+        
+        .song-card.active {
+            border-color: #FF4081;
+            background-color: rgba(76, 62, 78, 0.67);
+        }
+        
+        .song-thumb {
+            width: 110px;
+            height: 88px;
+            object-fit: cover;
+            flex-shrink: 0;
+        }
+        
+        .song-details {
+            padding: 13px 16px;
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+        
+        .song-card-title {
+            font-size: 16px;
+            margin-bottom: 4px;
+            color: #fff;
+            font-weight: 500;
+        }
+        
+        .song-card-bvid {
+            font-size: 12px;
+            color: #aaa;
+            margin-bottom: 6px;
+        }
+        
+        .song-card-category {
+            display: inline-block;
+            padding: 3px 10px;
+            border-radius: 14px;
+            font-size: 11px;
+            font-weight: 600;
+            align-self: flex-start;
+        }
+        
+        .guichu-category {
+            background-color: rgba(233, 30, 99, 0.18);
+            color: #FF669D;
+        }
+        
+        .pure-category {
+            background-color: rgba(33, 150, 243, 0.18);
+            color: #69C3FF;
+        }
+        
+        .vfamily-category {
+            background-color: rgba(0, 150, 136, 0.18);
+            color: #4DB6AC;
+        }
+        
+        .energetic-category {
+            background-color: rgba(255, 152, 0, 0.18);
+            color: #FFCC80;
+        }
+        
+        .other-category {
+            background-color: rgba(103, 58, 183, 0.18);
+            color: #B39DDB;
+        }
+        
+        footer {
+            text-align: center;
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 1px solid rgba(255, 255, 255, 0.09);
+            color: #777;
+            font-size: 13px;
+        }
+        
+        /* 移除所有桌面端特定的媒体查询 */
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>喜欢的歌，想给你听</h1>
+        </header>
+        
+        <div class="player-container">
+            <div class="player-wrapper">
+                <iframe 
+                    id="main-player"
+                    src="https://player.bilibili.com/player.html?bvid=BV1AV411S7yc&autoplay=false&page=1&high_quality=1"
+                    scrolling="no"
+                    border="0"
+                    frameborder="no"
+                    framespacing="0"
+                    allowfullscreen="true"
+                ></iframe>
+            </div>
+            
+            <div class="song-info">
+                <div class="song-title" id="current-song-title">恋爱循环鬼畜版</div>
+                <div class="song-category" id="current-song-category">鬼畜</div>
+            </div>
+        </div>
+        
+        <div class="categories-section">
+            <div class="categories-grid">
+                <div class="category-tab category-guichu active" data-category="guichu">鬼畜</div>
+                <div class="category-tab category-pure" data-category="pure">纯音</div>
+                <div class="category-tab category-vfamily" data-category="vfamily">V家</div>
+                <div class="category-tab category-energetic" data-category="energetic">燃曲</div>
+                <div class="category-tab category-other" data-category="other">其他</div>
+            </div>
+            
+            <div class="songs-container" id="songs-container">
+                <!-- 歌曲卡片将通过JavaScript动态生成 -->
+            </div>
+        </div>
+        
+        <footer>
+            <p>喜欢的歌，想给你听 · 音乐分享</p>
+        </footer>
+    </div>
+
+    <script>
+        // 歌曲数据，按分类组织
+        const songsData = {
+            guichu: [
+                {
+                    bvid: "BV1H4411e7xa",
+                    title: "【全明星】Counting Stars",
+                    artist: "柴可夫司徒",
+                    category: "鬼畜"
+                },
+                {
+                    bvid: "BV1w1421Q7V1",
+                    title: "“不是只有伟大的艺术家才能做出好作品”",
+                    artist: "洛温阿特金森",
+                    category: "鬼畜"
+                },
+                {
+                    bvid: "BV1qP4y1x7v3",
+                    title: "送你一颗流星",
+                    artist: "洛温阿特金森",
+                    category: "鬼畜"
+                },
+                {
+                    bvid: "BV1wW411A7CW",
+                    title: "我的洗发液",
+                    artist: "波澜哥",
+                    category: "鬼畜"
+                }
+             ],
+           pure: [
+                {
+                    bvid: "BV12Q4y1175g",
+                    title: "雨蝶",
+                    artist: "纯音钢琴曲",
+                    category: "纯音"
+                },
+                {
+                    bvid: "BV1JW411n7FG",
+                    title: "尖叫鸭子",
+                    artist: "ilem",
+                    category: "纯音"
+                }
+            ],
+            vfamily: [
+                {
+                    bvid: "BV1Hj411B7vc",
+                    title: "纸片人",
+                    artist: "洛天依/ilem",
+                    category: "V家"
+                }
+            ],
+            energetic: [
+                {
+                    bvid: "BV1btzqYoEUv",
+                    title: "sold out",
+                    artist: "Jonathan Steingard / Hawk Nelson",
+                    category: "燃曲"
+                }
+            ],
+            other: [
+                {
+                    bvid: "BV1yW41177hT",
+                    title: "平凡之路",
+                    artist: "朴树",
+                    category: "其他"
+                },
+                {
+                    bvid: "BV1Cb411w7iA",
+                    title: "夜空中最亮的星",
+                    artist: "逃跑计划",
+                    category: "其他"
+                },
+                {
+                    bvid: "BV1bW411M7R6",
+                    title: "光年之外",
+                    artist: "G.E.M.邓紫棋",
+                    category: "其他"
+                },
+                {
+                    bvid: "BV1hW411a7mM",
+                    title: "追光者",
+                    artist: "岑宁儿",
+                    category: "其他"
+                },
+                {
+                    bvid: "BV1NW411r7fG",
+                    title: "年少有为",
+                    artist: "李荣浩",
+                    category: "其他"
+                }
+            ]
+        };
+        
+        // 当前状态
+        let currentCategory = "guichu";
+        let currentSongIndex = 0;
+        let currentSongs = songsData[currentCategory];
+        let playerIframe = document.getElementById('main-player');
+        let currentSongTitle = document.getElementById('current-song-title');
+        let currentSongCategory = document.getElementById('current-song-category');
+        let songsContainer = document.getElementById('songs-container');
+        let categoryTabs = document.querySelectorAll('.category-tab');
+        
+        // 初始化
+        function init() {
+            // 加载初始分类的歌曲
+            loadSongsForCategory(currentCategory);
+            
+            // 设置分类标签点击事件
+            categoryTabs.forEach(tab => {
+                tab.addEventListener('click', function() {
+                    const category = this.getAttribute('data-category');
+                    switchCategory(category);
+                    
+                    // 滚动到顶部
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                });
+            });
+        }
+        
+        // 加载指定分类的歌曲
+        function loadSongsForCategory(category) {
+            currentCategory = category;
+            currentSongs = songsData[category];
+            currentSongIndex = 0;
+            
+            // 更新活跃的分类标签
+            categoryTabs.forEach(tab => {
+                if (tab.getAttribute('data-category') === category) {
+                    tab.classList.add('active');
+                } else {
+                    tab.classList.remove('active');
+                }
+            });
+            
+            // 清空歌曲容器
+            songsContainer.innerHTML = '';
+            
+            // 添加歌曲卡片
+            currentSongs.forEach((song, index) => {
+                const songCard = document.createElement('div');
+                songCard.className = 'song-card';
+                if (index === currentSongIndex) {
+                    songCard.classList.add('active');
+                }
+                songCard.setAttribute('data-index', index);
+                
+                // 设置分类样式
+                let categoryClass = '';
+                switch(category) {
+                    case 'guichu': categoryClass = 'guichu-category'; break;
+                    case 'pure': categoryClass = 'pure-category'; break;
+                    case 'vfamily': categoryClass = 'vfamily-category'; break;
+                    case 'energetic': categoryClass = 'energetic-category'; break;
+                    case 'other': categoryClass = 'other-category'; break;
+                }
+                
+                songCard.innerHTML = `
+                    <img src="https://img.bilibili.com/7d6f4d7c8c3b4b5e8f2a1c3d4e5f6a7b/0.jpg" class="song-thumb" alt="${song.title}">
+                    <div class="song-details">
+                        <div class="song-card-title">${song.title}</div>
+                        <div class="song-card-bvid">${song.bvid}</div>
+                        <div class="song-card-artist">${song.artist}</div>
+                        <span class="song-card-category ${categoryClass}">${song.category}</span>
+                    </div>
+                `;
+                
+                // 添加点击事件
+                songCard.addEventListener('click', function() {
+                    const index = parseInt(this.getAttribute('data-index'));
+                    playSong(index);
+                });
+                
+                songsContainer.appendChild(songCard);
+            });
+            
+            // 更新当前歌曲信息
+            updateCurrentSongInfo();
+        }
+        
+        // 切换分类
+        function switchCategory(category) {
+            loadSongsForCategory(category);
+        }
+        
+        // 播放指定索引的歌曲
+        function playSong(index) {
+            if (index < 0 || index >= currentSongs.length) return;
+            
+            currentSongIndex = index;
+            const song = currentSongs[index];
+            
+            // 更新播放器
+            playerIframe.src = `https://player.bilibili.com/player.html?bvid=${song.bvid}&autoplay=true&page=1&high_quality=1`;
+            
+            // 更新当前歌曲信息
+            updateCurrentSongInfo();
+            
+            // 更新歌曲卡片的选中状态
+            updateSongCardsSelection();
+        }
+        
+        // 更新当前歌曲信息
+        function updateCurrentSongInfo() {
+            const song = currentSongs[currentSongIndex];
+            currentSongTitle.textContent = `${song.title} - ${song.artist}`;
+            currentSongCategory.textContent = song.category;
+        }
+        
+        // 更新歌曲卡片的选中状态
+        function updateSongCardsSelection() {
+            const songCards = document.querySelectorAll('.song-card');
+            songCards.forEach((card, index) => {
+                if (index === currentSongIndex) {
+                    card.classList.add('active');
+                } else {
+                    card.classList.remove('active');
+                }
+            });
+        }
+        
+        // 页面加载完成后初始化
+        document.addEventListener('DOMContentLoaded', init);
+    </script>
+</body>
+</html>
