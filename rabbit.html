@@ -1,0 +1,923 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>我想陪你看...</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Arial Rounded MT Bold', 'Arial', sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #e6f7ff, #f0f9ff, #fff0f5);
+            min-height: 100vh;
+            overflow: hidden;
+            position: relative;
+        }
+        
+        .fullscreen-game {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .header {
+            background: linear-gradient(to right, rgba(255, 107, 157, 0.9), rgba(255, 143, 171, 0.9));
+            color: white;
+            text-align: center;
+            padding: 20px;
+            position: relative;
+            z-index: 10;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        
+        h1 {
+            font-size: 2.8rem;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+            margin-bottom: 5px;
+            letter-spacing: 2px;
+        }
+        
+        .subtitle {
+            font-size: 1.3rem;
+            opacity: 0.9;
+        }
+        
+        .hearts-counter {
+            position: absolute;
+            right: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            background-color: rgba(255, 255, 255, 0.2);
+            padding: 10px 20px;
+            border-radius: 50px;
+            display: flex;
+            align-items: center;
+            font-size: 1.5rem;
+        }
+        
+        .game-area {
+            flex: 1;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .game-board {
+            width: 100%;
+            height: 100%;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        /* 四季和日常生活元素样式 */
+        .collection-element {
+            position: absolute;
+            font-size: 3rem;
+            cursor: pointer;
+            transition: transform 0.3s, opacity 0.5s;
+            user-select: none;
+            z-index: 5;
+        }
+        
+        .collection-element:hover {
+            transform: scale(1.2) rotate(5deg);
+        }
+        
+        .collection-element.clicked {
+            animation: collectAnimation 0.8s forwards;
+        }
+        
+        @keyframes collectAnimation {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.5); opacity: 0.7; }
+            100% { transform: scale(0.5); opacity: 0; }
+        }
+        
+        /* 不同季节元素的颜色 */
+        .spring { color: #4caf50; } /* 春天 - 绿色 */
+        .summer { color: #ff9800; } /* 夏天 - 橙色 */
+        .autumn { color: #ff5722; } /* 秋天 - 红色 */
+        .winter { color: #03a9f4; } /* 冬天 - 蓝色 */
+        .daily { color: #9c27b0; } /* 日常生活 - 紫色 */
+        .special { color: #ff4081; } /* 特殊元素 - 粉色 */
+        
+        /* 全屏情书样式 */
+        .love-letter-container {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 100;
+            overflow: auto;
+        }
+        
+        .love-letter-container.active {
+            display: block;
+            animation: fadeIn 1s;
+        }
+        
+        .love-letter-background {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #ffb6c1, #ffc0cb, #f8c8dc, #ffafcc);
+            overflow: hidden;
+        }
+        
+        .heart-background {
+            position: absolute;
+            color: rgba(255, 255, 255, 0.1);
+            font-size: 4rem;
+            animation: floatHearts 12s infinite linear; /* 加快漂浮速度 */
+        }
+        
+        @keyframes floatHearts {
+            0% { transform: translateY(100vh) rotate(0deg); }
+            100% { transform: translateY(-100px) rotate(360deg); }
+        }
+        
+        .love-letter-content {
+            position: relative;
+            z-index: 2;
+            max-width: 900px;
+            margin: 50px auto;
+            padding: 50px;
+            background-color: rgba(255, 255, 255, 0.92);
+            border-radius: 25px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.25);
+            text-align: center;
+        }
+        
+        .love-letter-content h2 {
+            color: #ff4081;
+            font-size: 3.5rem;
+            margin-bottom: 35px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        
+        .love-message {
+            font-size: 1.6rem;
+            line-height: 1.9;
+            color: #555;
+    margin-bottom: 35px;
+            text-align: left;
+        }
+        
+        .love-message p {
+            margin-bottom: 22px;
+            padding-left: 20px;
+            border-left: 3px solid #ffb6c1;
+        }
+        
+        .message-footer {
+            font-style: italic;
+            color: #ff6b9d;
+            font-size: 1.7rem;
+            margin-top: 45px;
+            padding-top: 25px;
+            border-top: 2px dashed #ffb6c1;
+        }
+        
+        .close-btn {
+            position: absolute;
+            top: 25px;
+            right: 25px;
+            background: #ff4081;
+            color: white;
+            border: none;
+            width: 55px;
+            height: 55px;
+            border-radius: 50%;
+            font-size: 2.2rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s;
+            z-index: 101;
+            box-shadow: 0 4px 12px rgba(255, 64, 129, 0.3);
+        }
+        
+        .close-btn:hover {
+            background: #ff6b9d;
+            transform: scale(1.1);
+            box-shadow: 0 6px 18px rgba(255, 64, 129, 0.4);
+        }
+        
+        .progress-container {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 82%;
+            max-width: 650px;
+            background-color: rgba(255, 255, 255, 0.88);
+            border-radius: 20px;
+            padding: 16px 24px;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
+            z-index: 10;
+            backdrop-filter: blur(5px);
+        }
+        
+        .progress-text {
+            text-align: center;
+            font-size: 1.4rem;
+            color: #ff4081;
+            font-weight: bold;
+            margin-bottom: 14px;
+        }
+        
+        .progress-bar {
+            width: 100%;
+            height: 23px;
+            background-color: rgba(240, 240, 240, 0.8);
+            border-radius: 11px;
+            overflow: hidden;
+            box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+        
+        .progress {
+            height: 100%;
+            background: linear-gradient(to right, #4caf50, #ff9800, #ff5722, #03a9f4, #9c27b0, #ff4081);
+            width: 0%;
+            transition: width 0.5s;
+            border-radius: 11px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+        }
+        
+        .floating-elements {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            pointer-events: none;
+            z-index: 1;
+        }
+        
+        .floating-element {
+            position: absolute;
+            font-size: 1.5rem;
+            opacity: 0.17;
+        }
+        
+        .season-text {
+            position: absolute;
+            font-size: 5.5rem;
+            font-weight: bold;
+            opacity: 0.04;
+            z-index: 1;
+            pointer-events: none;
+        }
+        
+        .spring-text { 
+            top: 13%; 
+            left: 6%; 
+            color: #4caf50; 
+            transform: rotate(-12deg);
+        }
+        
+        .summer-text { 
+            top: 19%; 
+            right: 7%; 
+            color: #ff9800; 
+            transform: rotate(8deg);
+        }
+        
+        .autumn-text { 
+            bottom: 21%; 
+            left: 7%; 
+            color: #ff5722; 
+            transform: rotate(6deg);
+        }
+        .winter-text { 
+            bottom: 12%; 
+            right: 6%; 
+            color: #03a9f4; 
+            transform: rotate(-8deg);
+        }
+        
+        .daily-text { 
+            top: 48%; 
+            left: 51%; 
+            transform: translate(-52%, -46%); 
+            color: #9c27b0; 
+            font-size: 4.5rem;
+        }
+        
+        .element-name-popup {
+            position: fixed;
+            background-color: rgba(255, 255, 255, 0.93);
+            color: #ff4081;
+            padding: 6px 18px;
+            border-radius: 22px;
+            font-size: 1.28rem;
+            font-weight: bold;
+            z-index: 26;
+            pointer-events: none;
+            box-shadow: 0 4px 14px rgba(0, 0, 0, 0.18);
+            animation: popupFade 1.5s forwards;
+            border: 1px solid rgba(255, 192, 203, 0.5);
+        }
+        
+        @keyframes popupFade {
+            0% { opacity: 0; transform: translateY(0); }
+            20% { opacity: 1; transform: translateY(-24px); }
+            70% { opacity: 1; transform: translateY(-38px); }
+            100% { opacity: 0; transform: translateY(-56px); }
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        /* 加快漂浮动画速度 */
+        @keyframes floatFast1 {
+            0% { transform: translate(0, 0) rotate(0deg); }
+            33% { transform: translate(28px, -36px) rotate(110deg); }
+            66% { transform: translate(-18px, -58px) rotate(220deg); }
+            100% { transform: translate(0, 0) rotate(360deg); }
+        }
+        
+        @keyframes floatFast2 {
+            0% { transform: translate(0, 0) rotate(0deg); }
+            33% { transform: translate(-34px, 24px) rotate(-105deg); }
+            66% { transform: translate(42px, 14px) rotate(-215deg); }
+            100% { transform: translate(0, 0) rotate(-360deg); }
+        }
+        
+        @keyframes floatFast3 {
+            0% { transform: translate(0, 0) rotate(0deg); }
+            33% { transform: translate(44px, -24px) rotate(130deg); }
+            66% { transform: translate(-24px, -46px) rotate(250deg); }
+            100% { transform: translate(0, 0) rotate(360deg); }
+        }
+        
+        @keyframes floatFast4 {
+            0% { transform: translate(0, 0) rotate(0deg); }
+            33% { transform: translate(-44px, 14px) rotate(-125deg); }
+            66% { transform: translate(24px, 32px) rotate(-245deg); }
+            100% { transform: translate(0, 0) rotate(-360deg); }
+        }
+        
+        .final-effect {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 99;
+            pointer-events: none;
+            display: none;
+        }
+        
+        .final-effect.active {
+            display: block;
+        }
+        
+        .sparkle {
+            position: absolute;
+            font-size: 1.8rem;
+            color: rgba(255, 239, 71, 0.65);
+            animation: sparkleFloat 3s infinite linear;
+        }
+        
+        @keyframes sparkleFloat {
+            0% { transform: translateY(100vh) rotate(0deg); opacity: 0; }
+            10% { opacity: 1; }
+            90% { opacity: 1; }
+            100% { transform: translateY(-100px) rotate(720deg); opacity: 0; }
+        }
+        
+        @media (max-width: 1024px) {
+            .love-letter-content {
+                margin: 30px 20px;
+                padding: 35px 25px;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            h1 { font-size: 2.1rem; }
+            .subtitle { font-size: 1.08rem; }
+            .collection-element { font-size: 2.6rem; }
+            .season-text { font-size: 3.8rem; }
+            .daily-text { font-size: 2.8rem; }
+            .progress-container { 
+                width: 94%; 
+                padding: 13px 18px;
+            }
+            .progress-text { font-size: 1.18rem; }
+            .love-letter-content { 
+                margin: 20px 15px; 
+                padding: 25px 18px;
+            }
+            .love-letter-content h2 { 
+                font-size: 2.4rem; 
+                margin-bottom: 25px;
+            }
+            .love-message { 
+                font-size: 1.29rem; 
+                line-height: 1.72;
+            }
+            .message-footer { 
+                font-size: 1.39rem;
+                margin-top: 30px;
+            }
+            .hearts-counter {
+                position: static;
+                transform: none;
+                display: inline-flex;
+                margin-top: 10px;
+                padding: 8px 16px;
+            }
+            .header {
+                padding: 18px 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="fullscreen-game">
+        <div class="header">
+            <h1>我想陪你看...</h1>
+            <p class="subtitle">收集生活中的美好，解锁我们的未来</p>
+            <div class="hearts-counter">
+                <span id="collected-count">0</span> / <span id="total-count">20</span>
+            </div>
+        </div>
+        
+        <div class="game-area">
+            <div class="game-board" id="game-board">
+                <!-- 四季和日常元素会在这里动态生成 -->
+            </div>
+            
+            <div class="progress-container">
+                <div class="progress-text">我们的未来，还有很多...</div>
+                <div class="progress-bar">
+                    <div class="progress" id="progress"></div>
+                </div>
+            </div>
+            
+            <div class="season-text spring-text">春</div>
+            <div class="season-text summer-text">夏</div>
+            <div class="season-text autumn-text">秋</div>
+            <div class="season-text winter-text">冬</div>
+            <div class="season-text daily-text">日常</div>
+            
+            <div class="floating-elements" id="floating-elements">
+                <!-- 漂浮的背景元素 -->
+            </div>
+        </div>
+        
+        <!-- 全屏情书 -->
+        <div class="love-letter-container" id="love-letter-container">
+            <div class="love-letter-background" id="heart-background">
+                <!-- 心形背景会动态生成 -->
+            </div>
+            <div class="love-letter-content">
+                <h2>我想陪你看...</h2>
+                <div class="love-message" id="love-message">
+                    <!-- 表白信息会动态生成 -->
+                </div>
+                <p class="message-footer" id="message-footer"></p>
+            </div>
+            <button class="close-btn" id="close-btn">×</button>
+        </div>
+        
+        <!-- 简约的最终效果 -->
+        <div class="final-effect" id="final-effect"></div>
+    </div>
+
+    <script>
+        // 游戏变量
+        let collectedCount = 0;
+        const totalCount = 20;
+        let gameActive = true;
+        
+        // DOM 元素
+        const gameBoard = document.getElementById('game-board');
+        const collectedCountElement = document.getElementById('collected-count');
+        const totalCountElement = document.getElementById('total-count');
+        const progressElement = document.getElementById('progress');
+        const loveLetterContainer = document.getElementById('love-letter-container');
+        const loveMessageElement = document.getElementById('love-message');
+        const messageFooterElement = document.getElementById('message-footer');
+        const floatingElementsContainer = document.getElementById('floating-elements');
+        const closeBtn = document.getElementById('close-btn');
+        const heartBackground = document.getElementById('heart-background');
+        const finalEffect = document.getElementById('final-effect');
+        // 四季和日常生活元素配置
+        const seasonElements = [
+            // 春天元素
+            { class: "spring", icon: "fa-seedling", name: "春天的嫩芽" },
+            { class: "spring", icon: "fa-leaf", name: "新叶" },
+            { class: "spring", icon: "fa-tree", name: "开花的树" },
+            { class: "spring", icon: "fa-cloud-rain", name: "春雨" },
+            { class: "spring", icon: "fa-feather-alt", name: "微风" },
+            { class: "spring", icon: "fa-bug", name: "初醒的昆虫" },
+            
+            // 夏天元素
+            { class: "summer", icon: "fa-sun", name: "夏日的阳光" },
+            { class: "summer", icon: "fa-umbrella-beach", name: "海滩" },
+            { class: "summer", icon: "fa-water", name: "清凉的水" },
+            { class: "summer", icon: "fa-ice-cream", name: "冰淇淋" },
+            { class: "summer", icon: "fa-fan", name: "凉风" },
+            { class: "summer", icon: "fa-moon", name: "夏夜星空" },
+            
+            // 秋天元素
+            { class: "autumn", icon: "fa-leaf", name: "秋天的落叶" },
+            { class: "autumn", icon: "fa-cloud-sun", name: "秋日的阳光" },
+            { class: "autumn", icon: "fa-mountain", name: "秋色山景" },
+            { class: "autumn", icon: "fa-utensils", name: "丰收的果实" },
+            { class: "autumn", icon: "fa-wind", name: "秋风" },
+            { class: "autumn", icon: "fa-cloud-moon", name: "秋月" },
+            
+            // 冬天元素
+            { class: "winter", icon: "fa-snowflake", name: "雪花" },
+            { class: "winter", icon: "fa-icicles", name: "冰凌" },
+            { class: "winter", icon: "fa-mitten", name: "温暖的手套" },
+            { class: "winter", icon: "fa-fire", name: "炉火" },
+            { class: "winter", icon: "fa-snowman", name: "雪人" },
+            { class: "winter", icon: "fa-scarf", name: "围巾" },
+            
+            // 日常生活元素
+            { class: "daily", icon: "fa-coffee", name: "清晨的咖啡" },
+            { class: "daily", icon: "fa-book", name: "共读的书籍" },
+            { class: "daily", icon: "fa-music", name: "共享的音乐" },
+            { class: "daily", icon: "fa-utensils", name: "晚餐时光" },
+            { class: "daily", icon: "fa-film", name: "一起看的电影" },
+            { class: "daily", icon: "fa-heart", name: "心动瞬间" },
+            { class: "daily", icon: "fa-cat", name: "路过的猫咪" },
+            { class: "daily", icon: "fa-cloud-moon", name: "夜晚的云" },
+            { class: "daily", icon: "fa-home", name: "我们的家" },
+            { class: "daily", icon: "fa-car", name: "一起的旅行" },
+            { class: "daily", icon: "fa-camera", name: "美好的瞬间" },
+            { class: "daily", icon: "fa-star", name: "夜空的星星" },
+            
+            // 特殊元素
+            { class: "special", icon: "fa-heart", name: "爱" },
+            { class: "special", icon: "fa-heartbeat", name: "心跳" },
+            { class: "special", icon: "fa-kiss-wink-heart", name: "吻" },
+            { class: "special", icon: "fa-hand-holding-heart", name: "牵手" }
+        ];
+        
+        // 表白信息库
+        const loveMessages = [
+            "春天的嫩芽，如同初见你时心中的萌动。",
+            "夏日的阳光，像你笑容般温暖灿烂。",
+            "秋天的落叶，是我们一起走过的金色回忆。",
+            "冬日的雪花，纯洁如我对你的心意。",
+            "清晨的咖啡，想和你一起品味每个醒来的早晨。",
+            "共读的书籍，分享思想的碰撞与共鸣。",
+            "共享的音乐，让旋律成为我们之间的默契。",
+            "晚餐时光，简单的饭菜因你而变得特别。",
+            "一起看的电影，黑暗中悄悄望向你的侧脸。",
+            "心动瞬间，是你无意间的一个眼神一个微笑。",
+            "路过的猫咪，也会成为我们的话题和欢笑。",
+            "夜晚的云，在星空下许下关于未来的愿望。",
+            "春雨绵绵，像我对你诉不尽的思念。",
+            "夏日凉风，如你温柔拂过我的脸庞。",
+            "秋风落叶，每一片都写着我们的故事。",
+            "冬日炉火，温暖如你给我的拥抱。",
+            "我们的家，是世界上最温馨的港湾。",
+            "一起的旅行，每一步都是幸福的足迹。",
+            "美好的瞬间，都被我用记忆小心收藏。",
+            "夜空的星星，每一颗都在诉说着我爱你。"
+        ];
+        
+        // 完整的表白信息
+        const finalMessage = `
+            <p>亲爱的，</p>
+            <p>我想陪你看春天的第一片嫩芽，看夏日的最后一抹晚霞，</p>
+            <p>看秋天的落叶翩翩起舞，看冬日的雪花轻轻飘落。</p>
+            <p>我想陪你看清晨的日出，看午后的云卷云舒，</p>
+            <p>看傍晚的日落，看夜空的繁星点点。</p>
+            <p>我想陪你看街角的咖啡馆，看公园的长椅，</p>
+            <p>看雨后的彩虹，看晴空下的风筝。</p>
+            <p>我想陪你看你喜欢的电影，听你爱的音乐，</p>
+            <p>读你推荐的书，走你走过的路。</p>
+            <p>我想陪你看你的笑容，看你的眼眸，</p>
+            <p>看你的背影，看你所有的模样。</p>
+            <p>我想陪你看人生的起起落落，看岁月的静静流淌，</p>
+            <p>看时光在我们身上留下的痕迹，看爱情在心中生根发芽。</p>
+            <p>我们的未来，还有很多很多要一起看...</p>
+            <p style="text-align: center; font-size: 1.8rem; color: #ff4081; font-weight: bold; margin-top: 30px;">你愿意陪我一起看吗？</p>
+        `;
+        
+        // 初始化
+        function init() {
+            totalCountElement.textContent = totalCount;
+            createFloatingElements();
+            createHeartBackground();
+            
+            // 游戏自动开始
+            startGame();
+            
+            // 事件监听
+            closeBtn.addEventListener('click', () => {
+                loveLetterContainer.classList.remove('active');
+            });
+            
+            // 点击背景也可以关闭情书
+            loveLetterContainer.addEventListener('click', (e) => {
+                if (e.target === loveLetterContainer || e.target.classList.contains('love-letter-background')) {
+                    loveLetterContainer.classList.remove('active');
+                }
+            });
+        }
+        
+        // 创建心形背景
+        function createHeartBackground() {
+            for (let i = 0; i < 68; i++) {
+                const heart = document.createElement('div');
+                heart.className = 'heart-background';
+                heart.innerHTML = '<i class="fas fa-heart"></i>';
+                heart.style.left = `${Math.random() * 100}%`;
+                heart.style.animationDelay = `${Math.random() * 3}s`; // 更快出现
+                heart.style.animationDuration = `${Math.random() * 8 + 7}s`; // 加速漂浮
+                heart.style.fontSize = `${Math.random() * 35 + 22}px`;
+                heart.style.opacity = `${Math.random() * 0.2 + 0.06}`;
+                heartBackground.appendChild(heart);
+            }
+        }
+        
+        // 创建漂浮的背景元素
+        function createFloatingElements() {
+            for (let i = 0; i < 37; i++) {
+                const element = document.createElement('div');
+                element.className = 'floating-element';
+                
+                // 随机选择一个元素
+                const randomElement = seasonElements[Math.floor(Math.random() * seasonElements.length)];
+                element.innerHTML = `<i class="fas ${randomElement.icon}"></i>`;
+                element.style.color = getColorByClass(randomElement.class);
+                
+                element.style.left = `${Math.random() * 106 - 3}%`; // 超出边界一点
+                element.style.top = `${Math.random() * 103 - 2}%`;
+                element.style.fontSize = `${Math.random() * 24 + 16}px`;
+                
+                // 随机分配不同的快速浮动动画
+                const floatAnimations = ['floatFast1', 'floatFast2', 'floatFast3', 'floatFast4'];
+                const randomAnimation = floatAnimations[Math.floor(Math.random() * floatAnimations.length)];
+                const duration = Math.random() * 10 + 7; // 持续时间：7-17秒，比以前快
+                element.style.animation = `${randomAnimation} ${duration}s infinite linear`;
+                element.style.animationDelay = `${Math.random() * 3}s`;
+                
+                floatingElementsContainer.appendChild(element);
+            }
+        }
+        
+        // 开始游戏
+        function startGame() {
+        gameActive = true;
+            collectedCount = 0;
+            updateCounter();
+            updateProgress();
+            
+            // 清空游戏区域
+            gameBoard.innerHTML = '';
+            
+            // 开始生成元素
+            generateElements();
+            
+            // 设置定时器，定期生成元素
+            setInterval(generateElements, 1400); // 稍快生成元素
+        }
+        
+        // 生成可收集元素
+        function generateElements() {
+            if (!gameActive) return;
+            
+            // 如果已经收集了足够的元素，停止生成
+            if (collectedCount >= totalCount) {
+                return;
+            }
+            
+            // 随机决定生成多少元素（1-4个）
+            const elementsToGenerate = Math.floor(Math.random() * 4) + 1;
+            
+            for (let i = 0; i < elementsToGenerate; i++) {
+                createCollectibleElement();
+            }
+        }
+        
+        // 创建单个可收集元素
+        function createCollectibleElement() {
+            const element = document.createElement('div');
+            element.className = 'collection-element';
+            
+            // 随机选择一个元素
+            const randomElement = seasonElements[Math.floor(Math.random() * seasonElements.length)];
+            element.classList.add(randomElement.class);
+            element.innerHTML = `<i class="fas ${randomElement.icon}"></i>`;
+            element.dataset.name = randomElement.name;
+            
+            // 随机大小
+            const size = Math.random() * 43 + 54;
+            element.style.fontSize = `${size}px`;
+            
+            // 随机位置
+            const x = Math.random() * (gameBoard.offsetWidth - size);
+            const y = Math.random() * (gameBoard.offsetHeight - size);
+            element.style.left = `${x}px`;
+            element.style.top = `${y}px`;
+            
+            // 随机旋转
+            const rotation = Math.random() * 370;
+            element.style.transform = `rotate(${rotation}deg)`;
+            
+            // 随机分配不同的快速浮动动画
+            const floatAnimations = ['floatFast1', 'floatFast2', 'floatFast3', 'floatFast4'];
+            const randomAnimation = floatAnimations[Math.floor(Math.random() * floatAnimations.length)];
+            const duration = Math.random() * 8 + 6; // 持续时间：6-14秒，比以前快
+            element.style.animation = `${randomAnimation} ${duration}s infinite linear`;
+            
+            // 点击事件
+            element.addEventListener('click', () => collectElement(element));
+            
+            gameBoard.appendChild(element);
+            
+            // 4秒后自动消失 (原来是8秒)
+            setTimeout(() => {
+                if (element.parentNode && !element.classList.contains('clicked')) {
+                    element.style.opacity = '0';
+                    element.style.transition = 'opacity 1s'; // 淡出时间也缩短
+                    setTimeout(() => {
+                        if (element.parentNode) {
+                            element.remove();
+                        }
+                    }, 1000);
+                }
+            }, 4100); // 4.1秒后开始消失
+        }
+        
+        // 收集元素
+        function collectElement(element) {
+            if (!gameActive || element.classList.contains('clicked')) return;
+            element.classList.add('clicked');
+            
+            // 增加收集计数
+            collectedCount++;
+            updateCounter();
+            updateProgress();
+            
+            // 播放音效
+            playCollectSound();
+            
+            // 显示收集到的元素名称
+            showElementName(element.dataset.name, getColorByClass(element.classList[1]));
+            
+            // 检查是否收集完成
+            if (collectedCount >= totalCount) {
+                setTimeout(endGame, 700); // 稍短延时
+            }
+            
+            // 收集后移除元素
+            setTimeout(() => {
+                if (element.parentNode) {
+                    element.remove();
+                }
+            }, 750); // 移除时间也稍短
+        }
+        
+        // 根据类别获取颜色
+        function getColorByClass(className) {
+            switch(className) {
+                case 'spring': return '#4caf50';
+                case 'summer': return '#ff9800';
+                case 'autumn': return '#ff5722';
+                case 'winter': return '#03a9f4';
+                case 'daily': return '#9c27b0';
+                case 'special': return '#ff4081';
+                default: return '#ff4081';
+            }
+        }
+        
+        // 显示收集到的元素名称
+        function showElementName(name, color) {
+            const nameElement = document.createElement('div');
+            nameElement.className = 'element-name-popup';
+            nameElement.textContent = `✨ ${name}`;
+            nameElement.style.color = color;
+            
+            // 随机位置
+            const x = Math.random() * (window.innerWidth - 170) + 87;
+            const y = Math.random() * (window.innerHeight - 340) + 160;
+            nameElement.style.left = `${x}px`;
+            nameElement.style.top = `${y}px`;
+            
+            document.body.appendChild(nameElement);
+            
+            // 自动移除
+            setTimeout(() => {
+                if (nameElement.parentNode) {
+                    nameElement.remove();
+                }
+            }, 1550);
+        }
+        
+        // 播放收集音效
+        function playCollectSound() {
+            // 创建简单的音效
+            const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            const oscillator = audioContext.createOscillator();
+            const gainNode = audioContext.createGain();
+            
+            oscillator.connect(gainNode);
+            gainNode.connect(audioContext.destination);
+            
+            oscillator.frequency.value = 620 + Math.random() * 230;
+            oscillator.type = 'sine';
+            
+            gainNode.gain.setValueAtTime(0.31, audioContext.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.008, audioContext.currentTime + 0.47);
+            
+            oscillator.start(audioContext.currentTime);
+            oscillator.stop(audioContext.currentTime + 0.49);
+        }
+        // 更新计数器
+        function updateCounter() {
+            collectedCountElement.textContent = collectedCount;
+        }
+        
+        // 更新进度条
+        function updateProgress() {
+            const percent = Math.min((collectedCount / totalCount) * 100, 100);
+            progressElement.style.width = `${percent}%`;
+        }
+        
+        // 创建简约的最终效果
+        function createSimpleEffect() {
+            for (let i = 0; i < 78; i++) {
+                const sparkle = document.createElement('div');
+                sparkle.className = 'sparkle';
+                sparkle.innerHTML = '✦';
+                
+                sparkle.style.left = `${Math.random() * 108 - 4}%`;
+                sparkle.style.animationDelay = `${Math.random() * 2.5}s`;
+                sparkle.style.animationDuration = `${Math.random() * 2.8 + 1.8}s`; // 较快速度
+                sparkle.style.fontSize = `${Math.random() * 1.9 + 1.6}rem`;
+                
+                finalEffect.appendChild(sparkle);
+            }
+            finalEffect.classList.add('active');
+        }
+        
+        // 结束游戏
+        function endGame() {
+            gameActive = false;
+            
+            // 创建简约的效果
+            createSimpleEffect();
+            
+            // 稍等片刻后显示情书
+            setTimeout(() => {
+                showLoveMessage();
+            }, 850);
+        }
+        
+        // 显示表白信息
+        function showLoveMessage() {
+            // 构建完整表白
+            let messageHTML = finalMessage;
+            
+            // 添加收集到的元素
+            messageHTML += "<div style='margin-top: 40px; padding: 24px; background: linear-gradient(to right, rgba(255, 182, 193, 0.18), rgba(255, 235, 238, 0.22)); border-radius: 15px;'>";
+            messageHTML += "<p style='font-size: 1.41rem; color: #ff4081; margin-bottom: 16px; font-weight: bold;'>我们已收集的美好：</p>";
+            
+            // 从已收集的元素中随机选择一些显示
+            const collectedMessages = [...loveMessages].sort(() => 0.5 - Math.random()).slice(0, 9);
+            collectedMessages.forEach(msg => {
+                messageHTML += `<div style="margin: 10px 0; font-size: 1.19rem;"><i class="fas fa-heart" style="color: #ff4081; margin-right: 12px;"></i>${msg}</div>`;
+            });
+            
+            messageHTML += "</div>";
+            
+            loveMessageElement.innerHTML = messageHTML;
+            messageFooterElement.innerHTML = "❤️ 我们的故事才刚刚开始... ❤️";
+            
+            // 显示表白容器
+            setTimeout(() => {
+                loveLetterContainer.classList.add('active');
+            }, 320);
+        }
+        
+        // 初始化游戏
+        window.onload = init;
+    </script>
+</body>
+</html>
