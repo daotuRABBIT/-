@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>随机表白生成器</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      height: 100vh;
+      background: linear-gradient(135deg, #ffe6f2 0%, #ffd1dc 100%);
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      overflow: hidden;
+      cursor: pointer;
+      position: relative;
+    }
+    .message {
+      position: absolute;
+      color: #ff3366;
+      font-size: 24px;
+      font-weight: 600;
+      text-shadow: 0 2px 10px rgba(255,51,102,0.3);
+      animation: fadeInOut 3s ease-in-out forwards;
+      pointer-events: none;
+      max-width: 300px;
+      text-align: center;
+      line-height: 1.4;
+    }
+    @keyframes fadeInOut {
+      0% { opacity: 0; transform: translateY(20px) scale(0.8); }
+      20% { opacity: 1; transform: translateY(0) scale(1); }
+      80% { opacity: 1; transform: translateY(0) scale(1); }
+      100% { opacity: 0; transform: translateY(-20px) scale(0.8); }
+    }
+    .heart {
+      position: absolute;
+      color: #ff69b4;
+      font-size: 20px;
+      animation: float 2s ease-in-out forwards;
+      pointer-events: none;
+    }
+    @keyframes float {
+      0% { opacity: 1; transform: translateY(0) rotate(0deg); }
+      100% { opacity: 0; transform: translateY(-100px) rotate(360deg); }
+    }
+    .hint {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      color: #ff3366;
+      font-size: 18px;
+      opacity: 0.7;
+      text-align: center;
+      animation: pulse 2s infinite;
+    }
+    @keyframes pulse {
+      0%, 100% { opacity: 0.7; }
+      50% { opacity: 1; }
+    }
+  </style>
+</head>
+<body>
+  <div class="hint">点击屏幕任意位置<br>收获今日份心动</div>
+
+  <script>
+    const confessions = [
+      "遇见你之前，爱情只是个词；遇见你之后，它有了名字",
+      "我贪恋的人间烟火，不偏不倚恰好是你",
+      "你一笑，我的世界就晴了",
+      "想和你有以后，不止现在",
+      "你是我藏在微风里的喜欢",
+      "月亮不会奔向你，但我会",
+      "全世界都可以是你的，但你只能是我的",
+      "你是我疲惫生活的解药",
+      "见你的那天，风很甜，云很软，我很确定",
+      "想把宇宙的温柔都给你",
+      "你是我所有的不动声色里，最盛大的欢喜",
+      "遇见你之前，我心如旷野；遇见你之后，你是唯一的回音",
+      "我珍藏的岁月静好，不过是与你并肩的每个朝夕",
+      "你一开口，我心底的冰河就开始苏醒",
+      "想和你有故事，从第一页写到最后一页",
+      "你是我藏在星河里的梦，璀璨又遥远",
+      "流星划过天际，而我只想坠入你的眼睛",
+      "全世界都可以喧哗，但你必须听清我的爱意",
+      "你是我荒芜宇宙里，突然绽放的玫瑰",
+      "等你的日子，秒针很慢，思念很重，风都很轻",
+      "想把晚霞裁成裙摆，为你跳一支舞",
+      "你是我所有波澜不惊里，最惊心动魄的潮汐",
+      "爱你这件事，我按下了静音，却震耳欲聋",
+      "遇见你之前，我习惯独行；遇见你之后，我害怕离别",
+      "我寻觅的半生风景，终点是你含笑的眼睛",
+      "你一靠近，我的四季都乱了顺序",
+      "想和你看尽潮起潮落，依然紧握双手",
+      "你是我藏在备忘录里，反复修改的温柔",
+      "时间不会倒流，但爱你的瞬间可以永恒",
+      "全世界都可以褪色，但你的轮廓必须清晰",
+      "你是我迷途时，突然亮起的灯塔",
+      "想你的夜晚，月光很满，心跳很吵，梦都很甜",
+      "你是我所有言不由衷里，最坦诚的句点",
+      "喜欢你这件事，我锁进了抽屉，钥匙却丢在了风里",
+      "我贪恋的温暖人间，恰巧有你掌心的温度",
+      "你一回眸，我的世界就按下了暂停键",
+      "想和你有清晨的粥，也有深夜的酒",
+      "你是我藏在脉搏里的韵律，为你跳动",
+      "春天会再来，但你不来，花就不开",
+      "全世界都可以忘记，但你必须记得我爱你",
+      "你是我平凡日子里，最汹涌的波澜",
+      "见你的那刻，路很漫长，心跳很快，结局很确定",
+      "想把所有的幸运，都攒起来遇见你",
+      "你是我所有辗转反侧里，最安心的归宿",
+      "爱你这件事，我关上了窗，它却从门缝溜进来",  // 修正：这里原来是中文逗号
+      "喜欢你这件事，我捂住了嘴巴，还是会从眼睛里跑出来"
+    ];
+
+    let clickCount = 0;
+
+    document.body.addEventListener('click', (e) => {
+      clickCount++;
+      if (clickCount === 1) {
+        document.querySelector('.hint').style.display = 'none';
+      }
+
+      // 随机情话
+      const randomConfession = confessions[Math.floor(Math.random() * confessions.length)];
+      const message = document.createElement('div');
+      message.className = 'message';
+      message.textContent = randomConfession;
+      
+      // 确保消息不会超出屏幕边界
+      const maxLeft = window.innerWidth - 300;
+      const left = Math.max(20, Math.min(e.clientX - 150, maxLeft));
+      message.style.left = left + 'px';
+      message.style.top = (e.clientY - 20) + 'px';
+      
+      document.body.appendChild(message);
+
+      // 生成爱心
+      for (let i = 0; i < 5; i++) {
+        setTimeout(() => {
+          const heart = document.createElement('div');
+          heart.className = 'heart';
+          heart.innerHTML = '❤️';
+          heart.style.left = (e.clientX + (Math.random() - 0.5) * 100) + 'px';
+          heart.style.top = (e.clientY + (Math.random() - 0.5) * 100) + 'px';
+          document.body.appendChild(heart);
+          
+          setTimeout(() => heart.remove(), 2000);
+        }, i * 100);
+      }
+
+      // 清理消息
+      setTimeout(() => message.remove(), 3000);
+    });
+  </script>
+</body>
+</html>
