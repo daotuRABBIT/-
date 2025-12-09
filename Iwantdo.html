@@ -1,0 +1,1094 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>我想给你做...</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #FFF5EE, #FFEFD5, #FFE4E1);
+            min-height: 100vh;
+            overflow-x: hidden;
+            position: relative;
+            color: #5C3317;
+        }
+        
+        .fullscreen-game {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+        }
+        
+        .header {
+            background: linear-gradient(to right, rgba(139, 69, 19, 0.9), rgba(160, 82, 45, 0.9));
+            color: #FFEBCD;
+            text-align: center;
+            padding: 15px 10px;
+            position: relative;
+            z-index: 10;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            flex-shrink: 0;
+        }
+        
+        h1 {
+            font-size: 2rem;
+            text-shadow: 2px 2px 5px rgba(0, 0, 0, 0.3);
+            margin-bottom: 5px;
+            letter-spacing: 1px;
+            color: #FFF;
+        }
+        
+        .dishes-counter {
+            display: inline-flex;
+            margin-top: 10px;
+            padding: 8px 16px;
+            background-color: rgba(255, 255, 255, 0.2);
+            border-radius: 50px;
+            align-items: center;
+            font-size: 1.2rem;
+            backdrop-filter: blur(5px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .game-area {
+            flex: 1;
+            position: relative;
+            overflow-y: auto;
+            padding: 15px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        
+        .top-section {
+            display: flex;
+            flex-direction: column;
+            background-color: rgba(255, 251, 246, 0.95);
+            border-radius: 15px;
+            padding: 15px;
+            box-shadow: 0 8px 25px rgba(139, 69, 19, 0.15);
+        }
+        
+        .dish-info {
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        
+        .dish-icon {
+            font-size: 2.5rem;
+            color: #8B4513;
+            margin-right: 15px;
+            flex-shrink: 0;
+        }
+        
+        .dish-text {
+            flex: 1;
+        }
+        
+        .dish-name {
+            font-size: 1.5rem;
+            color: #8B4513;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        
+        .dish-description {
+            font-size: 0.95rem;
+            color: #654321;
+        }
+        
+        .ingredients-list {
+            background-color: #FFF8F0;
+            border-radius: 10px;
+            padding: 12px;
+        }
+        
+        .ingredient-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 8px;
+            padding: 6px 8px;
+            border-radius: 8px;
+            background-color: rgba(255, 255, 255, 0.7);
+            transition: all 0.3s;
+        }
+        
+        .ingredient-item.completed {
+            background-color: rgba(152, 251, 152, 0.4);
+        }
+        
+        .ingredient-icon {
+            font-size: 1.5rem;
+            margin-right: 10px;
+            width: 35px;
+            text-align: center;
+        }
+        
+        .ingredient-name {
+            font-size: 1.1rem;
+            flex: 1;
+        }
+        
+        .step-indicator {
+            font-size: 0.8rem;
+            color: #8B4513;
+            font-weight: bold;
+        }
+        
+        .recipe-hint {
+            font-size: 1rem;
+            color: #8B4513;
+            text-align: center;
+            margin-top: 12px;
+            font-weight: bold;
+        }
+        
+        .kitchen-section {
+            background-color: rgba(255, 251, 246, 0.95);
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 8px 25px rgba(139, 69, 19, 0.15);
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .stove-top {
+            height: 180px;
+            background: linear-gradient(to bottom, #696969, #808080);
+            border-radius: 15px;
+            position: relative;
+            margin-bottom: 15px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            box-shadow: inset 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+        
+        .pan {
+            width: 200px;
+            height: 130px;
+            background: linear-gradient(to bottom, #A0522D, #8B4513);
+            border-radius: 50%;
+            position: relative;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.4);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .pan-inner {
+            width: 160px;
+            height: 100px;
+            background: linear-gradient(to bottom, #CD853F, #A0522D);
+            border-radius: 50%;
+            box-shadow: inset 0 5px 15px rgba(0, 0, 0, 0.4);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .food-ingredients {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-wrap: wrap;
+            padding: 15px;
+        }
+        
+        .food-item {
+            position: absolute;
+            font-size: 2rem;
+            transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            opacity: 0;
+            z-index: 2;
+        }
+        
+        .food-item.in-pan {
+            opacity: 1;
+            transform: scale(1);
+        }
+        
+        .fire {
+            position: absolute;
+            bottom: 0;
+            width: 80px;
+            height: 50px;
+            background: linear-gradient(to top, #FF4500, #FF6347, #FFA500);
+            border-radius: 50% 50% 0 0;
+            opacity: 0.8;
+            filter: blur(2px);
+            animation: fireFlicker 1.5s infinite alternate;
+        }
+        
+        @keyframes fireFlicker {
+            0% { height: 50px; opacity: 0.7; }
+            100% { height: 65px; opacity: 0.9; }
+        }
+        
+        .ingredients-tray {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            padding: 15px;
+            background-color: #FFF8F0;
+            border-radius: 15px;
+            margin-bottom: 15px;
+        }
+        
+        .ingredient-to-add {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 12px 8px;
+            background-color: white;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 5px 15px rgba(139, 69, 19, 0.1);
+            user-select: none;
+            min-height: 90px;
+        }
+        
+        .ingredient-to-add:active {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(139, 69, 19, 0.2);
+        }
+        
+        .ingredient-to-add.disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none !important;
+        }
+        
+        .ingredient-to-add .icon {
+            font-size: 2.2rem;
+            margin-bottom: 6px;
+        }
+        
+        .ingredient-to-add .name {
+            font-size: 1rem;
+            text-align: center;
+            word-break: break-word;
+        }
+        
+        .control-buttons {
+            display: flex;
+            justify-content: space-between;
+            gap: 10px;
+            margin-top: auto;
+        }
+        
+        .action-button {
+            background: linear-gradient(to right, #8B4513, #A0522D);
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            font-size: 1rem;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 5px 15px rgba(139, 69, 19, 0.3);
+            flex: 1;
+        }
+        
+        .action-button:active:not(:disabled) {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(139, 69, 19, 0.4);
+            background: linear-gradient(to right, #A0522D, #CD853F);
+        }
+        
+        .action-button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        .reset-button {
+            background: linear-gradient(to right, #696969, #808080);
+        }
+        
+        .reset-button:active:not(:disabled) {
+            background: linear-gradient(to right, #808080, #A9A9A9);
+        }
+        
+        .love-letter-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 200;
+            overflow-y: auto;
+            display: none;
+            justify-content: center;
+            align-items: flex-start;
+            padding: 15px;
+        }
+        
+        .love-letter-container.active {
+            display: flex;
+            animation: fadeIn 0.8s;
+        }
+        
+        .letter-background {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.85);
+            z-index: 201;
+        }
+        
+        .letter-content {
+            position: relative;
+            z-index: 202;
+            width: 100%;
+            background: linear-gradient(145deg, #FFF8F0, #FFF5EE);
+            border-radius: 20px;
+            padding: 25px 20px;
+            box-shadow: 0 25px 60px rgba(0, 0, 0, 0.5);
+            color: #5C3317;
+            text-align: center;
+            border: 2px solid #D2B48C;
+            margin-top: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .letter-header {
+            margin-bottom: 25px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+        }
+        
+        .dish-icon-large {
+            width: 180px;
+            height: 135px;
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+            border: 3px solid #D2B48C;
+            font-size: 5rem;
+            color: #8B4513;
+            background: linear-gradient(145deg, #F5DEB3, #FFE4B5);
+        }
+        
+        .letter-title {
+            color: #8B4513;
+            font-size: 1.8rem;
+            margin-bottom: 10px;
+            text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.1);
+        }
+        
+        .flavor-type {
+            font-size: 1.3rem;
+            color: #A0522D;
+            font-style: italic;
+            margin-bottom: 20px;
+        }
+        
+        .letter-body {
+            font-size: 1.2rem;
+            line-height: 1.7;
+            color: #654321;
+            margin: 25px 0;
+            text-align: left;
+            padding: 15px;
+            background-color: rgba(255, 249, 237, 0.7);
+            border-radius: 15px;
+            border-left: 5px solid #D2691E;
+        }
+        
+        .letter-body p {
+            margin-bottom: 18px;
+        }
+        
+        .letter-footer {
+            font-style: italic;
+            color: #8B4513;
+            font-size: 1.3rem;
+            margin-top: 25px;
+            padding-top: 20px;
+            border-top: 1px dashed #D2B48C;
+        }
+        
+        .close-letter-btn {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: #8B4513;
+            color: white;
+            border: none;
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            font-size: 1.8rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s;
+            z-index: 205;
+        }
+        
+        .close-letter-btn:active {
+            background: #A0522D;
+            transform: scale(1.1);
+        }
+        
+        .success-animation {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 199;
+            pointer-events: none;
+            display: none;
+        }
+        
+        .success-animation.active {
+            display: block;
+        }
+        
+        .sparkle {
+            position: absolute;
+            font-size: 1.8rem;
+            color: #FFD700;
+            animation: sparkleFloat 2s forwards;
+        }
+        
+        @keyframes sparkleFloat {
+            0% { opacity: 0; transform: translateY(0) scale(0.5); }
+            20% { opacity: 1; transform: translateY(-20px) scale(1); }
+            80% { opacity: 1; transform: translateY(-60px) scale(1); }
+            100% { opacity: 0; transform: translateY(-80px) scale(0.5); }
+        }
+        
+        .steam {
+            position: absolute;
+            width: 35px;
+            height: 35px;
+            background: rgba(255, 255, 255, 0.7);
+            border-radius: 50%;
+            filter: blur(5px);
+            animation: steamRise 3s infinite;
+        }
+        
+        @keyframes steamRise {
+            0% { opacity: 0.5; transform: translateY(0) scale(1); }
+            100% { opacity: 0; transform: translateY(-50px) scale(1.5); }
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        /* 小屏幕优化 */
+        @media screen and (max-width: 375px) {
+            h1 {
+                font-size: 1.8rem;
+            }
+            
+            .dish-name {
+                font-size: 1.4rem;
+            }
+            
+            .stove-top {
+                height: 160px;
+            }
+            
+            .pan {
+                width: 170px;
+                height: 110px;
+            }
+            
+            .pan-inner {
+                width: 130px;
+                height: 80px;
+            }
+            
+            .ingredients-tray {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .ingredient-to-add {
+                min-height: 85px;
+            }
+            
+            .dish-icon-large {
+                width: 150px;
+                height: 110px;
+                font-size: 4rem;
+            }
+            
+            .control-buttons {
+                flex-direction: column;
+            }
+            
+            .action-button {
+                width: 100%;
+            }
+        }
+        
+        /* 横屏模式优化 */
+        @media screen and (orientation: landscape) and (max-height: 500px) {
+            .header {
+                padding: 8px 10px;
+            }
+            
+            h1 {
+                font-size: 1.5rem;
+                margin-bottom: 3px;
+            }
+            
+            .game-area {
+                padding: 8px;
+                gap: 8px;
+            }
+            
+            .stove-top {
+                height: 140px;
+                margin-bottom: 8px;
+            }
+            
+            .pan {
+                width: 160px;
+                height: 95px;
+            }
+            
+            .pan-inner {
+                width: 130px;
+                height: 70px;
+            }
+            
+            .ingredients-tray {
+                min-height: 100px;
+                padding: 8px;
+            }
+            
+            .ingredient-to-add {
+                min-height: 70px;
+                padding: 6px 4px;
+            }
+            
+            .ingredient-to-add .icon {
+                font-size: 1.5rem;
+                margin-bottom: 2px;
+            }
+            
+            .ingredient-to-add .name {
+                font-size: 0.8rem;
+            }
+            
+            .dish-icon-large {
+                width: 120px;
+                height: 90px;
+                font-size: 3rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="fullscreen-game">
+        <div class="header">
+            <h1>我想给你做...</h1>
+            <div class="dishes-counter">
+                <i class="fas fa-utensils" style="color: #FFEBCD; margin-right: 8px;"></i>
+                <span id="completed-count">0</span> / <span id="total-dishes">3</span>
+            </div>
+        </div>
+        
+        <div class="game-area">
+            <div class="top-section">
+                <div class="dish-info">
+                    <div class="dish-icon" id="dish-icon"></div>
+                    <div class="dish-text">
+                        <div class="dish-name" id="dish-name"></div>
+                        <div class="dish-description" id="dish-description"></div>
+                    </div>
+                </div>
+                
+                <div class="ingredients-list" id="ingredients-list"></div>
+                <p class="recipe-hint">请按顺序将食材放入锅中</p>
+            </div>
+            
+            <div class="kitchen-section">
+                <div class="stove-top">
+                    <div class="pan">
+                        <div class="pan-inner">
+                            <div class="food-ingredients" id="food-ingredients"></div>
+                        </div>
+                    </div>
+                    <div class="fire"></div>
+                    
+                    <div class="steam" style="left: 30%; animation-delay: 0s;"></div>
+                    <div class="steam" style="left: 50%; animation-delay: 0.5s;"></div>
+                    <div class="steam" style="left: 70%; animation-delay: 1s;"></div>
+                </div>
+                
+                <div class="ingredients-tray" id="ingredients-tray"></div>
+                
+                <div class="control-buttons">
+                    <button class="action-button reset-button" id="reset-button">重新开始</button>
+                    <button class="action-button" id="serve-button" disabled>上菜</button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 成功动画 -->
+        <div class="success-animation" id="success-animation"></div>
+        
+        <!-- 情书信件 -->
+        <div class="love-letter-container" id="love-letter-container">
+            <div class="letter-background"></div>
+            <div class="letter-content">
+                <div class="letter-header">
+                    <div class="dish-icon-large" id="dish-icon-large"></div>
+                    <h2 class="letter-title" id="letter-title"></h2>
+                    <p class="flavor-type" id="flavor-type"></p>
+                </div>
+                <div class="letter-body" id="letter-body"></div>
+                <p class="letter-footer" id="letter-footer"></p>
+            </div>
+            <button class="close-letter-btn" id="close-letter-btn">×</button>
+        </div>
+    </div>
+
+    <script>
+        // 游戏变量
+        let currentDishIndex = 0;
+        let completedDishes = 0;
+        let currentStep = 0;
+        let dishIngredients = [];
+        let addedIngredients = [];
+        
+        // DOM 元素
+        const dishIcon = document.getElementById('dish-icon');
+        const dishName = document.getElementById('dish-name');
+        const dishDescription = document.getElementById('dish-description');
+        const ingredientsList = document.getElementById('ingredients-list');
+        const ingredientsTray = document.getElementById('ingredients-tray');
+        const foodIngredients = document.getElementById('food-ingredients');
+        const resetButton = document.getElementById('reset-button');
+        const serveButton = document.getElementById('serve-button');
+        const completedCountElement = document.getElementById('completed-count');
+        const totalDishesElement = document.getElementById('total-dishes');
+        const successAnimation = document.getElementById('success-animation');
+        const loveLetterContainer = document.getElementById('love-letter-container');
+        const dishIconLarge = document.getElementById('dish-icon-large');
+        const letterTitle = document.getElementById('letter-title');
+        const flavorType = document.getElementById('flavor-type');
+        const letterBody = document.getElementById('letter-body');
+        const letterFooter = document.getElementById('letter-footer');
+        const closeLetterBtn = document.getElementById('close-letter-btn');
+        
+        // 三道菜的配置
+        const dishes = [
+            {
+                id: 0,
+                name: "麻婆豆腐",
+                description: "川菜经典，麻辣鲜香，口感嫩滑",
+                icon: "fa-solid fa-bowl-rice",
+                colorStyle: "background: linear-gradient(145deg, #FF6B6B, #FF8E8E); color: #FFF;",
+                flavor: "热烈的，滚烫的感情",
+                ingredients: [
+                    { name: "豆腐", icon: "fa-solid fa-cube", step: 1 },
+                    { name: "猪肉末", icon: "fa-solid fa-drumstick-bite", step: 2 },
+                    { name: "豆瓣酱", icon: "fa-solid fa-jar", step: 3 },
+                    { name: "花椒", icon: "fa-solid fa-pepper-hot", step: 4 }
+                ],
+                letter: {
+                    title: "麻婆豆腐的情书",
+                    body: `
+                        <p>就像这道麻婆豆腐，我的感情也是这般热烈而滚烫。</p>
+                        <p>豆腐般的温柔包裹着麻辣的激情，正如我对你的爱——表面温和，内心却充满火热。</p>
+                        <p>花椒的麻，辣酱的烈，混合在一起，就是我见到你时心跳的感觉。</p>
+                        <p>每一次想你，都像是舌尖触碰到麻辣的快感，既刺激又让人欲罢不能。</p>
+                        <p>我希望我们的爱情也能像这道菜一样，虽然有时会有小小的刺激，但回味却是无穷的美好。</p>
+                    `,
+                    footer: "愿我的爱如这麻辣滋味，永远让你心跳加速"
+                }
+            },
+            {
+                id: 1,
+                name: "清炒虾仁",
+                description: "鲜美爽口，虾仁Q弹，色泽诱人",
+                icon: "fa-solid fa-shrimp",
+                colorStyle: "background: linear-gradient(145deg, #4ECDC4, #44A08D); color: #FFF;",
+                flavor: "清新的，纯粹的感情",
+                ingredients: [
+                    { name: "虾仁", icon: "fa-solid fa-fish", step: 1 },
+                    { name: "黄瓜", icon: "fa-solid fa-seedling", step: 2 },
+                    { name: "胡萝卜", icon: "fa-solid fa-carrot", step: 3 },
+                    { name: "食盐", icon: "fa-solid fa-mortar-pestle", step: 4 }
+                ],
+                letter: {
+                    title: "清炒虾仁的情书",
+                    body: `
+                        <p>就像这道清炒虾仁，我对你的感情是那样清新而纯粹。</p>
+                        <p>没有过多的调味，只有虾仁本身的鲜美，正如我爱你的初心——简单而真挚。</p>
+                        <p>黄瓜的清脆，胡萝卜的甘甜，搭配虾仁的弹性，就像我们相处的每一天，平淡中带着惊喜。</p>
+                        <p>有时候，最简单的食材往往能做出最美味的菜肴，正如最简单的话语往往能表达最深的感情。</p>
+                        <p>我不需要华丽的辞藻，只想对你说：有你陪伴的每一餐，都是人间美味。</p>
+                    `,
+                    footer: "愿我们的爱情如这道菜般清爽宜人，回味悠长"
+                }
+            },
+            {
+                id: 2,
+                name: "芙蓉鸡片",
+                description: "口感滑嫩，色泽洁白，营养丰富",
+                icon: "fa-solid fa-drumstick",
+                colorStyle: "background: linear-gradient(145deg, #FFD166, #FFB347); color: #FFF;",
+                flavor: "温柔的，细腻的感情",
+                ingredients: [
+                    { name: "鸡胸肉", icon: "fa-solid fa-drumstick", step: 1 },
+                    { name: "鸡蛋清", icon: "fa-solid fa-egg", step: 2 },
+                    { name: "料酒", icon: "fa-solid fa-wine-bottle", step: 3 },
+                    { name: "淀粉", icon: "fa-solid fa-flask", step: 4 },
+                    { name: "食盐", icon: "fa-solid fa-mortar-pestle", step: 5 }
+                ],
+                letter: {
+                    title: "芙蓉鸡片的情书",
+                    body: `
+                        <p>就像这道芙蓉鸡片，我对你的感情是那般温柔而细腻。</p>
+                        <p>鸡片滑嫩如丝，入口即化，正如我对你的呵护——无微不至，体贴入微。</p>
+                        <p>蛋清的柔滑，淀粉的包裹，让鸡肉保持最嫩的状态，就像我小心守护着我们的爱情，不让它受到任何伤害。</p>
+                        <p>这道菜需要耐心和细心，正如经营一份感情，需要时间的沉淀和精心的呵护。</p>
+                        <p>我想告诉你，无论外面的世界如何喧嚣，在我心中，你永远是那道最温柔、最美好的存在。</p>
+                    `,
+                    footer: "愿我的温柔如这芙蓉鸡片，永远包裹着你，呵护着你"
+                }
+            }
+        ];
+        
+        // 初始化
+        function init() {
+            totalDishesElement.textContent = dishes.length;
+            
+            // 加载第一道菜
+            loadDish(currentDishIndex);
+            
+            // 事件监听
+            resetButton.addEventListener('click', resetCurrentDish);
+            serveButton.addEventListener('click', serveDish);
+            
+            closeLetterBtn.addEventListener('click', () => {
+                loveLetterContainer.classList.remove('active');
+                
+                // 如果是最后一道菜，则结束游戏
+                if (completedDishes === dishes.length) {
+                    setTimeout(() => {
+                        alert("完成了所有菜品！\n\n我想给你做的，\n不仅仅是一顿饭，\n而是一生的承诺。");
+                    }, 500);
+                }
+            });
+            
+            // 点击背景关闭情书
+            document.querySelector('.letter-background').addEventListener('click', () => {
+                loveLetterContainer.classList.remove('active');
+            });
+        }
+        
+        // 加载菜品
+        function loadDish(dishIndex) {
+            const dish = dishes[dishIndex];
+            
+            // 重置当前状态
+            currentStep = 0;
+            dishIngredients = [...dish.ingredients];
+            addedIngredients = [];
+            
+            // 更新UI
+            dishIcon.innerHTML = `<i class="${dish.icon}"></i>`;
+            dishName.textContent = dish.name;
+            dishDescription.textContent = dish.description;
+            
+            // 更新食材清单
+            updateIngredientsList();
+            
+            // 更新食材托盘
+            updateIngredientsTray();
+            
+            // 清空锅中的食材
+            foodIngredients.innerHTML = '';
+            
+            // 禁用上菜按钮
+            serveButton.disabled = true;
+            serveButton.textContent = "上菜";
+            
+            // 创建成功动画元素
+            createSuccessAnimation();
+        }
+        
+        // 更新食材清单
+        function updateIngredientsList() {
+            ingredientsList.innerHTML = '';
+            
+            dishIngredients.forEach(ingredient => {
+                const ingredientItem = document.createElement('div');
+                ingredientItem.className = 'ingredient-item';
+                ingredientItem.id = `list-item-${ingredient.step}`;
+                
+                const isCompleted = addedIngredients.some(item => item.step === ingredient.step);
+                if (isCompleted) {
+                    ingredientItem.classList.add('completed');
+                }
+                
+                ingredientItem.innerHTML = `
+                    <div class="ingredient-icon"><i class="${ingredient.icon}"></i></div>
+                    <div class="ingredient-name">${ingredient.name}</div>
+                    <div class="step-indicator">第${ingredient.step}步</div>
+                `;
+                
+                ingredientsList.appendChild(ingredientItem);
+            });
+        }
+        
+        // 更新食材托盘
+        function updateIngredientsTray() {
+            ingredientsTray.innerHTML = '';
+            
+            dishIngredients.forEach(ingredient => {
+                const isCompleted = addedIngredients.some(item => item.step === ingredient.step);
+                
+                const ingredientElement = document.createElement('div');
+                ingredientElement.className = 'ingredient-to-add';
+                ingredientElement.dataset.step = ingredient.step;
+                ingredientElement.dataset.name = ingredient.name;
+                
+                if (isCompleted) {
+                    ingredientElement.classList.add('disabled');
+                }
+                
+                ingredientElement.innerHTML = `
+                    <div class="icon"><i class="${ingredient.icon}"></i></div>
+                    <div class="name">${ingredient.name}</div>
+                `;
+                
+                if (!isCompleted) {
+                    ingredientElement.addEventListener('click', () => addIngredientToPan(ingredient));
+                }
+                
+                ingredientsTray.appendChild(ingredientElement);
+            });
+        }
+        
+        // 添加食材到锅中
+        function addIngredientToPan(ingredient) {
+            // 检查是否是正确步骤
+            if (ingredient.step !== currentStep + 1) {
+                // 不显示错误提示，直接返回
+                return;
+            }
+            
+            // 添加到已添加列表
+            addedIngredients.push({...ingredient});
+            currentStep++;
+            
+            // 更新UI
+            updateIngredientsList();
+            updateIngredientsTray();
+            
+            // 在锅中显示食材
+            addFoodToPan(ingredient);
+            
+            // 播放音效
+            playAddSound();
+            
+            // 检查是否完成所有步骤
+            if (addedIngredients.length === dishIngredients.length) {
+                // 所有食材都已添加
+                serveButton.disabled = false;
+                serveButton.textContent = "上菜！";
+            }
+        }
+        
+        // 在锅中显示食材
+        function addFoodToPan(ingredient) {
+            const foodItem = document.createElement('div');
+            foodItem.className = 'food-item';
+            foodItem.innerHTML = `<i class="${ingredient.icon}"></i>`;
+            
+            // 随机位置（在锅内）
+            const panRect = foodIngredients.getBoundingClientRect();
+            const maxX = panRect.width - 35;
+            const maxY = panRect.height - 35;
+            const x = Math.random() * maxX;
+            const y = Math.random() * maxY;
+            
+            foodItem.style.left = `${x}px`;
+            foodItem.style.top = `${y}px`;
+            
+            // 添加到锅中
+            foodIngredients.appendChild(foodItem);
+            
+            // 触发动画
+            setTimeout(() => {
+                foodItem.classList.add('in-pan');
+            }, 10);
+        }
+        
+        // 重置当前菜品
+        function resetCurrentDish() {
+            loadDish(currentDishIndex);
+        }
+        
+        // 上菜
+        function serveDish() {
+            if (addedIngredients.length !== dishIngredients.length) {
+                return;
+            }
+            
+            // 播放成功动画
+            showSuccessAnimation();
+            
+            // 增加完成的菜品计数
+            completedDishes++;
+            completedCountElement.textContent = completedDishes;
+            
+            // 播放音效
+            playSuccessSound();
+            
+            // 显示情书
+            setTimeout(() => {
+                showLoveLetter(currentDishIndex);
+            }, 1200);
+            
+            // 如果不是最后一道菜，准备下一道菜
+            if (currentDishIndex < dishes.length - 1) {
+                setTimeout(() => {
+                    currentDishIndex++;
+                    loadDish(currentDishIndex);
+                }, 3000);
+            }
+        }
+        
+        // 显示情书
+        function showLoveLetter(dishIndex) {
+            const dish = dishes[dishIndex];
+            
+            // 设置菜品图标
+            dishIconLarge.innerHTML = `<i class="${dish.icon}"></i>`;
+            dishIconLarge.style.cssText = dish.colorStyle;
+            
+            letterTitle.textContent = dish.name;
+            flavorType.textContent = dish.flavor;
+            letterBody.innerHTML = dish.letter.body;
+            letterFooter.textContent = dish.letter.footer;
+            
+            loveLetterContainer.classList.add('active');
+        }
+        
+        // 创建成功动画元素
+        function createSuccessAnimation() {
+            successAnimation.innerHTML = '';
+            
+            // 创建多个闪烁效果
+            for (let i = 0; i < 25; i++) {
+                const sparkle = document.createElement('div');
+                sparkle.className = 'sparkle';
+                sparkle.innerHTML = '✦';
+                
+                sparkle.style.left = `${Math.random() * 100}%`;
+                sparkle.style.top = `${Math.random() * 100}%`;
+                sparkle.style.animationDelay = `${Math.random() * 1.5}s`;
+                sparkle.style.color = getRandomSparkleColor();
+                
+                successAnimation.appendChild(sparkle);
+            }
+        }
+        
+        // 显示成功动画
+        function showSuccessAnimation() {
+            successAnimation.classList.add('active');
+            
+            // 3秒后隐藏动画
+            setTimeout(() => {
+                successAnimation.classList.remove('active');
+            }, 3000);
+        }
+        
+        // 获取随机闪烁颜色
+        function getRandomSparkleColor() {
+            const colors = ['#FFD700', '#FF6347', '#9370DB', '#98FB98', '#87CEEB', '#FFB6C1'];
+            return colors[Math.floor(Math.random() * colors.length)];
+        }
+        
+        // 播放添加食材音效
+        function playAddSound() {
+            try {
+                const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                const oscillator = audioContext.createOscillator();
+                const gainNode = audioContext.createGain();
+                
+                oscillator.connect(gainNode);
+                gainNode.connect(audioContext.destination);
+                
+                oscillator.frequency.value = 523.25;
+                oscillator.type = 'sine';
+                
+                gainNode.gain.setValueAtTime(0.2, audioContext.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3);
+                
+                oscillator.start(audioContext.currentTime);
+                oscillator.stop(audioContext.currentTime + 0.32);
+            } catch (e) {
+                console.log("音频播放失败，可能是用户尚未与页面交互");
+            }
+        }
+        
+        // 播放成功音效
+        function playSuccessSound() {
+            try {
+                const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                const oscillator = audioContext.createOscillator();
+                const gainNode = audioContext.createGain();
+                
+                oscillator.connect(gainNode);
+                gainNode.connect(audioContext.destination);
+                
+                oscillator.frequency.setValueAtTime(523.25, audioContext.currentTime);
+                oscillator.frequency.setValueAtTime(659.25, audioContext.currentTime + 0.1);
+                oscillator.frequency.setValueAtTime(783.99, audioContext.currentTime + 0.2);
+                oscillator.type = 'sine';
+                
+                gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.5);
+                
+                oscillator.start(audioContext.currentTime);
+                oscillator.stop(audioContext.currentTime + 0.53);
+            } catch (e) {
+                console.log("音频播放失败，可能是用户尚未与页面交互");
+            }
+        }
+        
+        // 初始化游戏
+        window.onload = init;
+    </script>
+</body>
+</html>
